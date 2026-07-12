@@ -1,0 +1,1363 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/**, vite.config.ts, package.json
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  App.tsx
+  index.css
+  main.tsx
+  vite-env.d.ts
+package.json
+vite.config.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/App.tsx">
+import { useState, useRef, useCallback, useEffect } from 'react'
+
+type AppState = 'idle' | 'listening' | 'processing' | 'responded' | 'error'
+
+// ── Roast bank ─────────────────────────────────────────────────────────────
+
+const GENERIC_ROASTS = [
+  "That trash talk was cute. Almost as cute as your team's last season stats — painfully bad.",
+  "Bold talk from someone whose team's highlight reel fits on a Post-it note.",
+  "I've seen better coordination at a middle school talent show than your team's offense.",
+  "Your squad's so bad, even the mascot is looking for a trade.",
+  "Keep dreaming, champ. Your team hasn't seen a trophy since dial-up internet was fast.",
+  "You call that trash talk? My grandma roasts harder, and she doesn't even watch sports.",
+  "Your team's defense is like a screen door on a submarine — decorative at best.",
+  "The only thing worse than your team's record is the confidence you just showed.",
+  "Twenty years of rebuilding. Any day now... any day. Keep the faith, buddy.",
+  "I'd roast you harder, but your team already does that every single game.",
+  "You must be really passionate about mediocrity, because your team has MASTERED it.",
+  "That almost qualified as a threat. Just like your team almost qualifies as competition.",
+  "Even your stadium's WiFi drops out during the fourth quarter. Can't blame it.",
+  "Your team's greatest achievement this decade is selling overpriced hot dogs.",
+  "I respect the passion. The delusion? That's free of charge.",
+]
+
+const KEYWORD_ROASTS: { keywords: string[]; roast: string }[] = [
+  {
+    keywords: ['patriots', 'brady', 'new england'],
+    roast: "Brady left and your whole identity collapsed. He knew when to move on — unlike your fanbase.",
+  },
+  {
+    keywords: ['cowboys', 'dallas', "america's team"],
+    roast: "America's Team? More like America's most expensive disappointment. Jerry Jones has been 'one year away' for three decades.",
+  },
+  {
+    keywords: ['lakers', 'lebron', 'los angeles lakers'],
+    roast: "LeBron carried that team so long the rest of 'em forgot how to walk without him.",
+  },
+  {
+    keywords: ['yankees', 'new york yankees'],
+    roast: "Payroll of a small nation, personality of a tax audit. Congrats on buying another mediocre October.",
+  },
+  {
+    keywords: ['knicks', 'new york knicks'],
+    roast: "Knicks fans have more faith than any religious group on Earth. And roughly the same championship odds.",
+  },
+  {
+    keywords: ['man city', 'manchester city', 'city'],
+    roast: "Oh wow, the oil-money team wins again? Groundbreaking. Try doing it with a wage cap, champ.",
+  },
+  {
+    keywords: ['arsenal', 'gunners'],
+    roast: "Top four! Top four! Arsenal fans counting top-four finishes like they're trophies. Adorable delusion.",
+  },
+  {
+    keywords: ['liverpool', 'reds'],
+    roast: "'You'll never walk alone' — except to the trophy cabinet, apparently. That walk is very much solo.",
+  },
+  {
+    keywords: ['real madrid', 'madrid'],
+    roast: "Real Madrid: a transfer deadline day press conference that occasionally plays football.",
+  },
+  {
+    keywords: ['barcelona', 'barca'],
+    roast: "Still playing tiki-taka like it's 2010 while the rest of the world evolved. Cute.",
+  },
+  {
+    keywords: ['golden state', 'warriors', 'steph', 'curry'],
+    roast: "The Hamptons five era called — it's embarrassed by what's left of this roster.",
+  },
+  {
+    keywords: ['celtics', 'boston celtics'],
+    roast: "17 championships and somehow the most insufferable fanbase in basketball. Impressive.",
+  },
+  {
+    keywords: ['heat', 'miami heat'],
+    roast: "Miami Heat fans show up in the third quarter and leave in the fourth. The team followed suit.",
+  },
+  {
+    keywords: ['red sox', 'boston red sox'],
+    roast: "Broke an 86-year curse and still chose to be miserable about everything. Peak Boston energy.",
+  },
+  {
+    keywords: ['cubs', 'chicago cubs'],
+    roast: "2016 happened and Cubs fans spent the next decade reminding everyone. We know. WE KNOW.",
+  },
+  {
+    keywords: ['packers', 'green bay'],
+    roast: "Green Bay: where the winters are harsh and the quarterback drama is harsher.",
+  },
+  {
+    keywords: ['browns', 'cleveland browns', 'cleveland'],
+    roast: "Cleveland Browns: officially the most historic franchise at cycling through quarterbacks without results.",
+  },
+  {
+    keywords: ['chiefs', 'kansas city', 'mahomes'],
+    roast: "Mahomes is generational, sure — but even gods have bad days. Yours are coming.",
+  },
+  {
+    keywords: ['49ers', 'san francisco'],
+    roast: "Great team, great stadium. Shame the fans' fair-weather reputation precedes them nationwide.",
+  },
+  {
+    keywords: ['mets', 'new york mets'],
+    roast: "The Mets are proof that throwing money at a problem can make it more expensive AND worse.",
+  },
+]
+
+function getRoast(transcript: string): string {
+  const lower = transcript.toLowerCase()
+  for (const entry of KEYWORD_ROASTS) {
+    if (entry.keywords.some((kw) => lower.includes(kw))) {
+      return entry.roast
+    }
+  }
+  return GENERIC_ROASTS[Math.floor(Math.random() * GENERIC_ROASTS.length)]
+}
+
+// ── Icons ───────────────────────────────────────────────────────────────────
+
+function FlameIcon({ size = 28, className = '' }: { size?: number; className?: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        d="M12 2C12 2 8 6.5 8 10c0 1.1.4 2.1 1 2.9C8.4 12.3 8 11.2 8 10c0 0-3 2.5-3 5.5C5 19.1 8.1 22 12 22s7-2.9 7-6.5c0-3-3-5.5-3-5.5 0 1.2-.4 2.3-1 3C15.6 12.1 16 11.1 16 10c0-3.5-4-8-4-8z"
+        fill="url(#flameGrad)"
+      />
+      <defs>
+        <linearGradient id="flameGrad" x1="12" y1="2" x2="12" y2="22" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ff8c42" />
+          <stop offset="60%" stopColor="#ff4500" />
+          <stop offset="100%" stopColor="#ff1a1a" />
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+}
+
+function MicIcon({ size = 40, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="9" y="2" width="6" height="11" rx="3" fill={color} />
+      <path
+        d="M5 10c0 3.87 3.13 7 7 7s7-3.13 7-7"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <line x1="12" y1="17" x2="12" y2="21" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <line x1="9" y1="21" x2="15" y2="21" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function ShieldIcon({ size = 56 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6l-8-4z"
+        fill="none"
+        stroke="rgba(255,107,0,0.25)"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6l-8-4z"
+        fill="url(#shieldGrad)"
+        opacity="0.12"
+      />
+      <defs>
+        <linearGradient id="shieldGrad" x1="12" y1="2" x2="12" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ff6b00" />
+          <stop offset="100%" stopColor="#ff1a1a" />
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+}
+
+// ── Sub-components ──────────────────────────────────────────────────────────
+
+function WaveAnimation() {
+  return (
+    <div className="flex items-end gap-[3px]" style={{ height: 24 }}>
+      <div className="wave-bar" style={{ height: 24 }} />
+      <div className="wave-bar" style={{ height: 24 }} />
+      <div className="wave-bar" style={{ height: 24 }} />
+      <div className="wave-bar" style={{ height: 24 }} />
+      <div className="wave-bar" style={{ height: 24 }} />
+    </div>
+  )
+}
+
+function SpeakingWave() {
+  return (
+    <div className="flex items-end gap-[2px]" style={{ height: 20 }}>
+      <div className="speaking-bar" style={{ height: 20 }} />
+      <div className="speaking-bar" style={{ height: 20 }} />
+      <div className="speaking-bar" style={{ height: 20 }} />
+      <div className="speaking-bar" style={{ height: 20 }} />
+      <div className="speaking-bar" style={{ height: 20 }} />
+      <div className="speaking-bar" style={{ height: 20 }} />
+      <div className="speaking-bar" style={{ height: 20 }} />
+    </div>
+  )
+}
+
+function LoadingDots() {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="dot" />
+      <div className="dot" />
+      <div className="dot" />
+    </div>
+  )
+}
+
+// ── Main App ─────────────────────────────────────────────────────────────────
+
+export default function App() {
+  const [appState, setAppState] = useState<AppState>('idle')
+  const [transcript, setTranscript] = useState('')
+  const [roastText, setRoastText] = useState('')
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [micPressed, setMicPressed] = useState(false)
+  const recognitionRef = useRef<any>(null)
+  const stateRef = useRef<AppState>('idle')
+
+  useEffect(() => {
+    stateRef.current = appState
+  }, [appState])
+
+  // cleanup on unmount
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis?.cancel()
+      recognitionRef.current?.abort()
+    }
+  }, [])
+
+  const speakRoast = useCallback((text: string) => {
+    if (!window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = 0.92
+    utterance.pitch = 0.78
+    utterance.volume = 1
+    utterance.onstart = () => setIsSpeaking(true)
+    utterance.onend = () => setIsSpeaking(false)
+    utterance.onerror = () => setIsSpeaking(false)
+    window.speechSynthesis.speak(utterance)
+  }, [])
+
+  const handleProcessRoast = useCallback(
+    (text: string) => {
+      setAppState('processing')
+      const delay = 1600 + Math.random() * 900
+      setTimeout(() => {
+        const roast = getRoast(text)
+        setRoastText(roast)
+        setAppState('responded')
+        speakRoast(roast)
+      }, delay)
+    },
+    [speakRoast],
+  )
+
+  const startListening = useCallback(() => {
+    const SR =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SR) {
+      setErrorMsg("Speech recognition isn't supported in this browser. Try Chrome or Edge.")
+      setAppState('error')
+      return
+    }
+
+    const recognition = new SR()
+    recognitionRef.current = recognition
+    recognition.lang = 'en-US'
+    recognition.interimResults = true
+    recognition.maxAlternatives = 1
+    recognition.continuous = false
+
+    let finalFired = false
+
+    recognition.onstart = () => {
+      setAppState('listening')
+    }
+
+    recognition.onresult = (event: any) => {
+      const result = event.results[event.results.length - 1]
+      const text = result[0].transcript
+      setTranscript(text)
+      if (result.isFinal && !finalFired) {
+        finalFired = true
+        recognition.stop()
+        handleProcessRoast(text)
+      }
+    }
+
+    recognition.onerror = (event: any) => {
+      if (finalFired) return
+      if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+        setErrorMsg("Mic access denied — check your browser permissions and try again.")
+      } else if (event.error === 'no-speech') {
+        setErrorMsg("Didn't catch that — tap to try again.")
+      } else if (event.error === 'aborted') {
+        // intentional, ignore
+        return
+      } else {
+        setErrorMsg("Microphone error — tap to try again.")
+      }
+      setAppState('error')
+    }
+
+    recognition.onend = () => {
+      if (!finalFired && stateRef.current === 'listening') {
+        setErrorMsg("Didn't catch that — tap to try again.")
+        setAppState('error')
+      }
+    }
+
+    try {
+      recognition.start()
+    } catch {
+      setErrorMsg("Couldn't access the mic — tap to try again.")
+      setAppState('error')
+    }
+  }, [handleProcessRoast])
+
+  const handleMicTap = useCallback(() => {
+    if (appState === 'idle' || appState === 'error') {
+      setErrorMsg('')
+      startListening()
+    }
+  }, [appState, startListening])
+
+  const reset = useCallback(() => {
+    window.speechSynthesis?.cancel()
+    recognitionRef.current?.abort()
+    setAppState('idle')
+    setTranscript('')
+    setRoastText('')
+    setIsSpeaking(false)
+    setErrorMsg('')
+  }, [])
+
+  const isInteractive = appState === 'idle' || appState === 'error'
+
+  // ── Mic ring color / style by state ──────────────────────────────────────
+  const micRingClass =
+    appState === 'listening'
+      ? 'animate-mic-glow-listening'
+      : 'animate-mic-glow-idle'
+
+  const micBgStyle =
+    appState === 'listening'
+      ? {
+          background:
+            'radial-gradient(circle at 35% 35%, #ff8c42, #ff4500 50%, #cc0000)',
+        }
+      : {
+          background:
+            'radial-gradient(circle at 35% 35%, #1e1e35, #14142a 60%, #0f0f1f)',
+        }
+
+  // ── Instruction text ──────────────────────────────────────────────────────
+  const instructionText =
+    appState === 'listening'
+      ? 'Listening...'
+      : appState === 'processing'
+        ? 'Thinking of a comeback...'
+        : appState === 'responded'
+          ? 'Your rival has spoken.'
+          : appState === 'error'
+            ? errorMsg || "Tap to try again."
+            : 'Tap and say your trash talk'
+
+  const instructionColor =
+    appState === 'error'
+      ? 'text-red-400'
+      : appState === 'listening'
+        ? 'text-fire-400'
+        : appState === 'processing'
+          ? 'text-orange-400'
+          : 'text-gray-400'
+
+  return (
+    <>
+      <div className="noise-overlay" />
+
+      {/* Page background with radial vignette */}
+      <div
+        style={{
+          minHeight: '100vh',
+          background:
+            'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,107,0,0.08) 0%, transparent 70%), #09090f',
+        }}
+      >
+        {/* Centered column */}
+        <div
+          style={{ maxWidth: 480 }}
+          className="mx-auto px-5 pb-16 pt-10 flex flex-col items-center gap-0"
+        >
+          {/* ── HEADER ── */}
+          <header className="w-full text-center mb-8">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <span className="flame-icon">
+                <FlameIcon size={36} />
+              </span>
+              <h1
+                className="font-display gradient-text leading-none tracking-wide"
+                style={{ fontSize: 'clamp(2.4rem, 10vw, 3.4rem)' }}
+              >
+                RIVALRY ROAST
+              </h1>
+              <span className="flame-icon" style={{ animationDelay: '0.4s' }}>
+                <FlameIcon size={36} />
+              </span>
+            </div>
+            <p className="text-gray-500 text-sm font-medium tracking-widest uppercase">
+              Talk smack.&nbsp; Get roasted back.
+            </p>
+          </header>
+
+          {/* ── MIC SECTION ── */}
+          <section className="flex flex-col items-center gap-6 w-full mb-8">
+            {/* Pulse rings + button */}
+            <div className="relative flex items-center justify-center" style={{ width: 180, height: 180 }}>
+              {/* Outer idle pulse ring */}
+              {appState === 'idle' && (
+                <div
+                  className="absolute rounded-full animate-pulse-ring"
+                  style={{
+                    width: 160,
+                    height: 160,
+                    border: '2px solid rgba(255,107,0,0.4)',
+                  }}
+                />
+              )}
+              {/* Listening rings — two staggered */}
+              {appState === 'listening' && (
+                <>
+                  <div
+                    className="absolute rounded-full animate-listening-ring"
+                    style={{
+                      width: 160,
+                      height: 160,
+                      border: '2px solid rgba(255,107,0,0.7)',
+                    }}
+                  />
+                  <div
+                    className="absolute rounded-full animate-listening-ring"
+                    style={{
+                      width: 160,
+                      height: 160,
+                      border: '2px solid rgba(255,69,0,0.5)',
+                      animationDelay: '0.4s',
+                    }}
+                  />
+                </>
+              )}
+
+              {/* Mic button */}
+              <button
+                onClick={handleMicTap}
+                disabled={!isInteractive}
+                onPointerDown={() => isInteractive && setMicPressed(true)}
+                onPointerUp={() => setMicPressed(false)}
+                onPointerLeave={() => setMicPressed(false)}
+                className={`
+                  relative z-10 rounded-full flex items-center justify-center
+                  transition-transform duration-150 select-none outline-none
+                  ${micRingClass}
+                  ${isInteractive ? 'cursor-pointer' : 'cursor-default'}
+                  ${micPressed ? 'scale-95' : 'scale-100'}
+                `}
+                style={{
+                  width: 140,
+                  height: 140,
+                  border: '2.5px solid rgba(255,107,0,0.45)',
+                  ...micBgStyle,
+                }}
+                aria-label={
+                  appState === 'listening'
+                    ? 'Listening to your trash talk'
+                    : 'Tap to record trash talk'
+                }
+              >
+                {/* Inner gradient ring */}
+                <div
+                  className="absolute inset-1 rounded-full opacity-20"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, rgba(255,140,66,0.6), transparent 60%)',
+                  }}
+                />
+
+                {appState === 'listening' ? (
+                  <WaveAnimation />
+                ) : appState === 'processing' ? (
+                  <LoadingDots />
+                ) : (
+                  <MicIcon size={42} color={isInteractive ? '#fff' : '#aaa'} />
+                )}
+              </button>
+            </div>
+
+            {/* State instruction */}
+            <p
+              className={`text-sm font-medium tracking-wide transition-all duration-300 ${instructionColor} animate-fade-in`}
+              key={appState}
+            >
+              {instructionText}
+            </p>
+          </section>
+
+          {/* ── TRANSCRIPT CARD ── */}
+          {(transcript || appState === 'listening') && (
+            <div className="w-full mb-4 animate-fade-up" key={`transcript-${transcript}`}>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-2 ml-1">
+                You said:
+              </p>
+              <div
+                className="w-full rounded-2xl px-5 py-4 relative"
+                style={{
+                  background: '#13132a',
+                  borderLeft: '3px solid rgba(255,140,66,0.6)',
+                  boxShadow: '0 2px 24px rgba(255,107,0,0.08)',
+                }}
+              >
+                {/* Speech bubble tail */}
+                <div
+                  className="absolute"
+                  style={{
+                    bottom: -7,
+                    left: 22,
+                    width: 14,
+                    height: 14,
+                    background: '#13132a',
+                    borderBottom: '3px solid rgba(255,140,66,0.6)',
+                    borderLeft: '3px solid rgba(255,140,66,0.6)',
+                    borderBottomLeftRadius: 3,
+                    transform: 'rotate(-45deg)',
+                    clipPath: 'polygon(0 0, 0 100%, 100% 100%)',
+                  }}
+                />
+                <p
+                  className="text-gray-100 leading-relaxed"
+                  style={{ fontSize: 15, minHeight: 22 }}
+                >
+                  {transcript || (
+                    <span className="text-gray-600 italic">Listening for your words...</span>
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ── RIVAL RESPONSE CARD ── */}
+          {appState === 'responded' && roastText ? (
+            <div className="w-full mb-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+              <div className="flex items-center justify-between mb-2 ml-1">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-600">
+                  The Rival claps back:
+                </p>
+                {isSpeaking && (
+                  <div className="flex items-center gap-2 animate-fade-in">
+                    <span className="text-xs text-fire-400 font-medium uppercase tracking-widest">
+                      Now speaking
+                    </span>
+                    <SpeakingWave />
+                  </div>
+                )}
+              </div>
+              <div
+                className="w-full rounded-2xl px-5 py-5 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #1a0a00 0%, #1f0a0a 100%)',
+                  borderRight: '3px solid rgba(255,69,0,0.7)',
+                  boxShadow:
+                    '0 4px 40px rgba(255,26,26,0.15), 0 1px 0 rgba(255,107,0,0.2) inset',
+                }}
+              >
+                {/* Gradient overlay top-right accent */}
+                <div
+                  className="absolute top-0 right-0 w-32 h-32 opacity-10 pointer-events-none"
+                  style={{
+                    background:
+                      'radial-gradient(circle at top right, #ff4500, transparent 70%)',
+                  }}
+                />
+                {/* Rival icon */}
+                <div className="absolute top-3 right-4 opacity-60">
+                  <ShieldIcon size={40} />
+                </div>
+
+                <p
+                  className="text-gray-100 leading-relaxed relative z-10 pr-8"
+                  style={{ fontSize: 15 }}
+                >
+                  {roastText}
+                </p>
+
+                {/* Bottom flame accent line */}
+                <div
+                  className="mt-4 h-px opacity-30"
+                  style={{
+                    background: 'linear-gradient(to right, #ff6b00, #ff1a1a, transparent)',
+                  }}
+                />
+                <div className="mt-3 flex items-center gap-2">
+                  <FlameIcon size={14} />
+                  <span className="text-xs text-fire-500 font-semibold uppercase tracking-widest">
+                    The Rival
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : appState === 'processing' ? (
+            /* Processing placeholder */
+            <div className="w-full mb-6 animate-fade-up">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-2 ml-1">
+                The Rival claps back:
+              </p>
+              <div
+                className="w-full rounded-2xl px-5 py-5"
+                style={{
+                  background: 'linear-gradient(135deg, #1a0a00 0%, #1f0a0a 100%)',
+                  borderRight: '3px solid rgba(255,69,0,0.4)',
+                  boxShadow: '0 4px 40px rgba(255,26,26,0.08)',
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  <LoadingDots />
+                  <span className="text-gray-600 text-sm italic">Cooking up something nasty...</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Empty state — first load or after reset */
+            appState === 'idle' && !transcript && (
+              <div
+                className="w-full mb-6 rounded-2xl px-5 py-8 flex flex-col items-center gap-3 animate-fade-in"
+                style={{
+                  background: '#0d0d1a',
+                  border: '1px dashed rgba(255,107,0,0.15)',
+                }}
+              >
+                <div style={{ opacity: 0.25 }}>
+                  <FlameIcon size={44} />
+                </div>
+                <p className="text-gray-600 text-sm text-center leading-relaxed">
+                  Your rival is waiting...
+                  <br />
+                  <span className="text-gray-700">Hit the mic and bring the heat.</span>
+                </p>
+              </div>
+            )
+          )}
+
+          {/* ── RESET BUTTON ── */}
+          {(appState === 'responded' || appState === 'processing' || (appState === 'error' && transcript)) && (
+            <button
+              onClick={reset}
+              className="
+                mt-2 px-8 py-3 rounded-full text-sm font-semibold uppercase tracking-widest
+                transition-all duration-200 hover:scale-105 active:scale-95
+                animate-fade-up
+              "
+              style={{
+                color: '#ff8c42',
+                background: 'rgba(255,107,0,0.08)',
+                border: '1.5px solid rgba(255,107,0,0.25)',
+                animationDelay: '0.2s',
+              }}
+            >
+              Try again →
+            </button>
+          )}
+
+          {/* ── FOOTER ── */}
+          <footer className="mt-12 text-center">
+            <p className="text-xs text-gray-700 tracking-widest uppercase">
+              Hackathon 2026 · Passion Track
+            </p>
+          </footer>
+        </div>
+      </div>
+    </>
+  )
+}
+</file>
+
+<file path="src/index.css">
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-fire-400: #ff8c42;
+  --color-fire-500: #ff6b00;
+  --color-fire-600: #ff4500;
+  --color-ember-400: #ff4d4d;
+  --color-ember-500: #ff1a1a;
+  --color-ember-600: #cc0000;
+  --color-pitch-950: #06060f;
+  --color-pitch-900: #09090f;
+  --color-pitch-800: #0f0f1a;
+  --color-pitch-700: #16162a;
+  --color-pitch-600: #1e1e35;
+  --color-pitch-500: #2a2a45;
+  --font-display: 'Anton', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #09090f;
+}
+
+body {
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
+  background: #09090f;
+  color: #f0f0f5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ff6b0044; border-radius: 2px; }
+
+/* ── Animations ── */
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes listening-ring {
+  0%   { transform: scale(1);   opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes mic-idle-glow {
+  0%, 100% { box-shadow: 0 0 24px rgba(255,107,0,0.4), 0 0 60px rgba(255,26,26,0.2), inset 0 0 20px rgba(255,107,0,0.1); }
+  50%       { box-shadow: 0 0 40px rgba(255,107,0,0.7), 0 0 100px rgba(255,26,26,0.4), inset 0 0 30px rgba(255,107,0,0.15); }
+}
+
+@keyframes mic-listening-glow {
+  0%, 100% { box-shadow: 0 0 50px rgba(255,107,0,0.9), 0 0 120px rgba(255,26,26,0.6), inset 0 0 40px rgba(255,107,0,0.2); }
+  50%       { box-shadow: 0 0 80px rgba(255,107,0,1.0), 0 0 180px rgba(255,26,26,0.8), inset 0 0 60px rgba(255,107,0,0.3); }
+}
+
+@keyframes wave-bar {
+  0%, 100% { transform: scaleY(0.3); }
+  50%       { transform: scaleY(1); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+  40%           { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes flame-float {
+  0%, 100% { transform: translateY(0) rotate(-3deg) scale(1); }
+  33%       { transform: translateY(-4px) rotate(2deg) scale(1.08); }
+  66%       { transform: translateY(-2px) rotate(-1deg) scale(1.03); }
+}
+
+@keyframes scale-press {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}
+
+@keyframes speaking-bar {
+  0%, 100% { height: 3px; }
+  50%       { height: 18px; }
+}
+
+/* ── Utility classes ── */
+
+.font-display { font-family: var(--font-display); }
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+.animate-listening-ring {
+  animation: listening-ring 1.2s ease-out infinite;
+}
+
+.animate-mic-glow-idle {
+  animation: mic-idle-glow 3s ease-in-out infinite;
+}
+
+.animate-mic-glow-listening {
+  animation: mic-listening-glow 0.8s ease-in-out infinite;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.4s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+
+.wave-bar {
+  width: 3px;
+  background: linear-gradient(to top, #ff6b00, #ff1a1a);
+  border-radius: 2px;
+  transform-origin: bottom;
+}
+
+.wave-bar:nth-child(1) { animation: wave-bar 0.6s ease-in-out infinite; }
+.wave-bar:nth-child(2) { animation: wave-bar 0.6s ease-in-out infinite 0.1s; }
+.wave-bar:nth-child(3) { animation: wave-bar 0.6s ease-in-out infinite 0.2s; }
+.wave-bar:nth-child(4) { animation: wave-bar 0.6s ease-in-out infinite 0.15s; }
+.wave-bar:nth-child(5) { animation: wave-bar 0.6s ease-in-out infinite 0.05s; }
+
+.speaking-bar {
+  width: 3px;
+  background: linear-gradient(to top, #ff8c42, #fff);
+  border-radius: 2px;
+  transform-origin: bottom;
+}
+
+.speaking-bar:nth-child(1) { animation: speaking-bar 0.5s ease-in-out infinite; }
+.speaking-bar:nth-child(2) { animation: speaking-bar 0.5s ease-in-out infinite 0.07s; }
+.speaking-bar:nth-child(3) { animation: speaking-bar 0.5s ease-in-out infinite 0.14s; }
+.speaking-bar:nth-child(4) { animation: speaking-bar 0.5s ease-in-out infinite 0.21s; }
+.speaking-bar:nth-child(5) { animation: speaking-bar 0.5s ease-in-out infinite 0.07s; }
+.speaking-bar:nth-child(6) { animation: speaking-bar 0.5s ease-in-out infinite 0.28s; }
+.speaking-bar:nth-child(7) { animation: speaking-bar 0.5s ease-in-out infinite 0.14s; }
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff6b00;
+}
+
+.dot:nth-child(1) { animation: dot-bounce 1.2s ease-in-out infinite; }
+.dot:nth-child(2) { animation: dot-bounce 1.2s ease-in-out infinite 0.2s; }
+.dot:nth-child(3) { animation: dot-bounce 1.2s ease-in-out infinite 0.4s; }
+
+.flame-icon {
+  display: inline-block;
+  animation: flame-float 2.5s ease-in-out infinite;
+}
+
+.mic-press:active {
+  animation: scale-press 0.15s ease-out both !important;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #ff8c42 0%, #ff4500 50%, #ff1a1a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  z-index: 1000;
+}
+</file>
+
+<file path="src/main.tsx">
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
+</file>
+
+<file path="src/vite-env.d.ts">
+/// <reference types="vite/client" />
+</file>
+
+<file path="package.json">
+{
+  "name": "figma-make-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "format": "oxfmt"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "oxfmt": "^0.2.0",
+    "typescript": "^5.7.0",
+    "vite": "^8.0.0"
+  }
+}
+</file>
+
+<file path="vite.config.ts">
+import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import path from 'node:path'
+
+import siteConfiguration from './.figma/make/site.json'
+
+const isFigmaSandbox = process.env.FIGMA === '1' || process.env.FIGMA === 'true'
+
+// Set only by the cached-preview build, so HTML-to-Design can map bundle frames
+// back to source. The publish/deploy build never sets it → published sites don't
+// embed source.
+const emitSourcemaps = process.env.EMIT_SOURCEMAPS === 'true'
+
+// Vite config — https://vitejs.dev/config/
+export default defineConfig({
+  base: process.env.FIGMA_PUBLIC_URL ? `${process.env.FIGMA_PUBLIC_URL}/` : '/',
+  build: {
+    sourcemap: emitSourcemaps ? 'inline' : false,
+    minify: !emitSourcemaps,
+  },
+  plugins: [
+    react(),
+    tailwindcss(),
+    figmaSiteConfiguration(siteConfiguration),
+    figmaErrorOverlayReplay(),
+    figmaReactRefreshBoundaryFallback(),
+    figmaMakeKitPlugin({ storiesGlob: '/src/**/*.stories.{ts,tsx,js,jsx}' }),
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    host: '0.0.0.0',
+    port: parseInt(process.env.PORT || '8443'),
+    strictPort: true,
+    hmr: isFigmaSandbox ? { clientPort: 443 } : undefined,
+    watch: { ignored: ['**/.figma/**'] },
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: parseInt(process.env.PORT || '8443'),
+  },
+})
+
+type FigmaSiteConfiguration = {
+  title?: string
+  description?: string
+  language?: string
+  robots?: {
+    index?: boolean
+  }
+  icons?: {
+    icon?: string
+  }
+  openGraph?: {
+    image?: string
+  }
+  analytics?: {
+    googleAnalyticsId?: string
+  }
+  customScripts?: {
+    headStart?: string
+    headEnd?: string
+    bodyStart?: string
+    bodyEnd?: string
+  }
+  accessibility?: {
+    addBypassLinks?: boolean
+  }
+}
+
+/** Applies /.figma/make/site.json to the generated document shell. */
+function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
+  function sanitizeHtmlValue(value: string | undefined): string {
+    return value?.replace(/[^a-zA-Z0-9_-]/g, '') || ''
+  }
+  function escapeHtmlText(value: string): string {
+    return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  }
+  function replaceHtmlCommentSlot(html: string, slotName: string, content: string): string {
+    return html.replace(`<!-- ${slotName} -->`, content)
+  }
+
+  const title = config.title ?? "Figma Make App"
+  const description = config.description ?? ''
+  const favicon = config.icons?.icon ?? ''
+  const socialImage = config.openGraph?.image ?? ''
+  const language = sanitizeHtmlValue(config.language) || 'en'
+  const googleAnalyticsId = sanitizeHtmlValue(config.analytics?.googleAnalyticsId)
+  const headStart = config.customScripts?.headStart ?? ''
+  const headEnd = config.customScripts?.headEnd ?? ''
+  const bodyStart = config.customScripts?.bodyStart ?? ''
+  const bodyEnd = config.customScripts?.bodyEnd ?? ''
+  const robotsTxt = config.robots?.index === false ? 'User-agent: *\nDisallow: /\n' : ''
+
+  return {
+    name: 'figma-site-configuration',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (!robotsTxt || req.url?.split('?')[0] !== '/robots.txt') return next()
+
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+        res.end(robotsTxt)
+      })
+    },
+    generateBundle() {
+      if (!robotsTxt) return
+
+      this.emitFile({
+        type: 'asset',
+        fileName: 'robots.txt',
+        source: robotsTxt,
+      })
+    },
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html) {
+        let result = html
+        result = replaceHtmlCommentSlot(result, 'figma:lang', language)
+        result = replaceHtmlCommentSlot(result, 'figma:title', escapeHtmlText(title))
+        result = replaceHtmlCommentSlot(result, 'figma:head-start', headStart)
+        result = replaceHtmlCommentSlot(result, 'figma:head-end', headEnd)
+        result = replaceHtmlCommentSlot(result, 'figma:body-start', bodyStart)
+        result = replaceHtmlCommentSlot(result, 'figma:body-end', bodyEnd)
+
+        const tags: HtmlTagDescriptor[] = []
+        if (description) {
+          tags.push({ tag: 'meta', attrs: { name: 'description', content: description }, injectTo: 'head' })
+        }
+        if (config.robots?.index === false) {
+          tags.push({ tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow' }, injectTo: 'head' })
+        }
+        if (favicon) {
+          tags.push({ tag: 'link', attrs: { rel: 'icon', href: favicon }, injectTo: 'head' })
+        }
+        if (title) {
+          tags.push({ tag: 'meta', attrs: { property: 'og:title', content: title }, injectTo: 'head' })
+        }
+        if (description) {
+          tags.push({ tag: 'meta', attrs: { property: 'og:description', content: description }, injectTo: 'head' })
+        }
+        if (socialImage) {
+          tags.push(
+            { tag: 'meta', attrs: { property: 'og:image', content: socialImage }, injectTo: 'head' },
+            { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' }, injectTo: 'head' },
+            { tag: 'meta', attrs: { name: 'twitter:image', content: socialImage }, injectTo: 'head' },
+          )
+        }
+
+        if (googleAnalyticsId) {
+          tags.push(
+            {
+              tag: 'script',
+              attrs: {
+                async: true,
+                src: `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`,
+              },
+              injectTo: 'head',
+            },
+            {
+              tag: 'script',
+              children: `
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', ${JSON.stringify(googleAnalyticsId)});
+`,
+              injectTo: 'head',
+            },
+          )
+        }
+
+        if (config.accessibility?.addBypassLinks) {
+          tags.push(
+            {
+              tag: 'style',
+              children: `
+  .figma-bypass-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 2147483647;
+    transform: translateY(-150%);
+    border-radius: 6px;
+    background: #111827;
+    color: #fff;
+    padding: 8px 12px;
+    font: 600 14px/1.2 system-ui, sans-serif;
+    text-decoration: none;
+  }
+  .figma-bypass-link:focus {
+    transform: translateY(0);
+  }
+`,
+              injectTo: 'head',
+            },
+            {
+              tag: 'a',
+              attrs: { class: 'figma-bypass-link', href: '#root' },
+              children: 'Skip to content',
+              injectTo: 'body-prepend',
+            },
+          )
+        }
+
+        return {
+          html: result,
+          tags,
+        }
+      },
+    },
+  }
+}
+
+/**
+ * Replay the most recent build error to clients that connect after
+ * it was first broadcast. Vite buffers an error payload only while
+ * no clients are connected and clears the buffer on the first
+ * reconnect (see `bufferedMessage` in `createWebSocketServer`), so
+ * if the preview iframe reloads after Vite already delivered an
+ * error to a live socket, the new socket misses the payload and
+ * the overlay stays hidden even though the build is still broken.
+ * We intercept `ws.send` to remember the latest error and replay
+ * it on every new connection; the cache clears on a successful
+ * `update` or `full-reload` so a stale overlay can't survive a
+ * fixed build.
+ */
+function figmaErrorOverlayReplay(): Plugin {
+  return {
+    name: 'figma-error-overlay-replay',
+    apply: 'serve',
+    configureServer(server) {
+      let lastError: object | null = null
+
+      const origSend = server.ws.send.bind(server.ws) as (...args: any[]) => void
+      server.ws.send = ((...args: any[]) => {
+        const payload = args[0]
+        if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+          const type = (payload as { type?: string }).type
+          if (type === 'error') {
+            lastError = payload as object
+          } else if (type === 'update' || type === 'full-reload') {
+            lastError = null
+          }
+        }
+        return origSend(...args)
+      }) as typeof server.ws.send
+
+      server.ws.on('connection', (socket) => {
+        if (lastError !== null) {
+          socket.send(JSON.stringify(lastError))
+        }
+      })
+    },
+  }
+}
+
+/**
+ * Reload when a module that previously defined a React Refresh boundary stops
+ * defining one. This happens when an agent moves a component into a new file
+ * and replaces the old module with a re-export:
+ *
+ *   export { default } from './app/App'
+ *
+ * Vite otherwise accepts the update using the previous module's HMR boundary,
+ * but the re-export-only transform no longer registers a replacement for the
+ * mounted component family. React reports a successful refresh while leaving
+ * the old tree mounted until the page is reloaded.
+ */
+function figmaReactRefreshBoundaryFallback(): Plugin {
+  const hadRefreshBoundary = new Map<string, boolean>()
+  let sendFullReload: (() => void) | null = null
+
+  return {
+    name: 'figma-react-refresh-boundary-fallback',
+    apply: 'serve',
+    enforce: 'post',
+    configureServer(server) {
+      sendFullReload = () => server.ws.send({ type: 'full-reload', path: '*' })
+    },
+    transform(code, id) {
+      if (!/\.[jt]sx?(?:\?|$)/.test(id) || id.includes('/node_modules/')) return null
+
+      const moduleId = id.split('?')[0] ?? id
+      const hasRefreshBoundary = code.includes('registerExportsForReactRefresh')
+      const previousHadRefreshBoundary = hadRefreshBoundary.get(moduleId)
+      hadRefreshBoundary.set(moduleId, hasRefreshBoundary)
+
+      if (previousHadRefreshBoundary && !hasRefreshBoundary) {
+        queueMicrotask(() => sendFullReload?.())
+      }
+
+      return null
+    },
+  }
+}
+
+/**
+ * Serves a blank render-target page at /.figma/make/kit.html that
+ * the Figma preview script drives directly. The page exposes a
+ * registry of every file matching `storiesGlob` on
+ * window.__FIGMA__.stories so the design surface can dynamically
+ * import + mount each entry into its own grid view.
+ *
+ * Dev-only: `apply: 'serve'` gates the plugin to `vite dev`. Prod
+ * builds (`vite build`) skip it entirely so the route doesn't leak
+ * into shipped bundles.
+ */
+function figmaMakeKitPlugin(options: { storiesGlob: string | string[] }): Plugin {
+  const storiesGlob = Array.isArray(options.storiesGlob) ? options.storiesGlob : [options.storiesGlob]
+  const ROUTE = '/.figma/make/kit.html'
+  const VIRTUAL_ID = 'virtual:figma-stories'
+  const RESOLVED_ID = '\0' + VIRTUAL_ID
+  const STORIES_MODULE = `export const stories = import.meta.glob(${JSON.stringify(storiesGlob)})`
+  const HTML_BOOTSTRAP = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
+<div id="figma-make-kit-root"></div>
+<script type="module">
+  import { stories } from 'virtual:figma-stories'
+  window.__FIGMA__ = Object.assign(window.__FIGMA__ ?? {}, { stories })
+  window.dispatchEvent(new CustomEvent('figma.ready'))
+</script>
+</body>
+</html>`
+
+  return {
+    name: 'figma-make-kit',
+    apply: 'serve',
+    resolveId(id) {
+      if (id === VIRTUAL_ID) return RESOLVED_ID
+      return null
+    },
+    load(id) {
+      if (id !== RESOLVED_ID) return null
+      return STORIES_MODULE
+    },
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const url = req.url || ''
+        if (url.split('?')[0] !== ROUTE) return next()
+
+        try {
+          res.setHeader('Content-Type', 'text/html')
+          res.end(await server.transformIndexHtml(url, HTML_BOOTSTRAP))
+        } catch (err) {
+          next(err as Error)
+        }
+      })
+    },
+  }
+}
+</file>
+
+</files>
