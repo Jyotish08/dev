@@ -2,9 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
 import dotenv from 'dotenv';
-import fetch from 'node-fetch'; // Polyfill for fetch if needed on older Node versions, but Node 18+ has native fetch.
+import fetch from 'node-fetch';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
@@ -12,7 +17,6 @@ app.use(express.json());
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Use native fetch if available, else fallback to node-fetch
 const fetchApi = globalThis.fetch || fetch;
 
 // Endpoint: STT via Groq Whisper
@@ -50,7 +54,8 @@ app.post('/api/roast', async (req, res) => {
 
     const prompt = `Generate a short, punchy, PG-13 sports rivalry roast responding to this trash talk: "${transcript}"`;
 
-const response = await fetchApi(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`, {      method: 'POST',
+    const response = await fetchApi(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }]
@@ -77,7 +82,7 @@ app.post('/api/tts', async (req, res) => {
     const { text } = req.body;
     if (!text) return res.status(400).json({ error: 'No text provided' });
 
-    const voiceId = process.env.ELEVENLABS_VOICE_ID || 'pNInz6obbfDQGcgMyIGb';
+    const voiceId = process.env.ELEVENLABS_VOICE_ID || 'CwhRBWXzGAHq8TQ4Fs17';
 
     const response = await fetchApi(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
@@ -109,5 +114,12 @@ app.post('/api/tts', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT) + 100 : 3001;
+// Serve the built frontend (production only — after all /api routes)
+app.use(express.static(path.join(__dirname, 'dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Backend server running on port ${PORT}`));
